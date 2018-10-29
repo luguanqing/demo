@@ -1,6 +1,9 @@
 package com.example.demo.config;
 
 import com.example.demo.utils.RedisUtil;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,9 +15,14 @@ import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSeriali
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import redis.clients.jedis.JedisPoolConfig;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 @Configuration
 @PropertySource("classpath:redis.properties")
 public class RedisConfig {
+
+    private static Logger logger = LoggerFactory.getLogger(RedisConfig.class);
 
     @Value("${redis.maxIdle}")
     private Integer maxIdle;
@@ -46,6 +54,9 @@ public class RedisConfig {
 
     @Value("${spring.redis.cluster.max-redirects}")
     private Integer mmaxRedirectsac;
+
+    @Value("${redis.hostName}")
+    private String redisHostName;
 
     /**
      * JedisPoolConfig 连接池
@@ -87,12 +98,30 @@ public class RedisConfig {
      */
     @Bean
     public JedisConnectionFactory JedisConnectionFactory(JedisPoolConfig jedisPoolConfig) {
+        InetAddress addr = null;
+        String hostName = "";
+        String ip = "";
+        try {
+            addr = InetAddress.getLocalHost();
+            hostName = addr.getHostName();
+            ip = addr.getHostAddress();
+        } catch (UnknownHostException e) {
+            logger.error("错误                      分公司股份");
+            e.printStackTrace();
+
+        }
+
         JedisConnectionFactory JedisConnectionFactory = new JedisConnectionFactory(jedisPoolConfig);
         //连接池
         JedisConnectionFactory.setPoolConfig(jedisPoolConfig);
-        //IP地址  
-        JedisConnectionFactory.setHostName("192.168.31.182");
-        //端口号  
+        //IP地址
+        if (StringUtils.isBlank(ip)) {
+            JedisConnectionFactory.setHostName("192.168.31.182");
+        } else {
+            JedisConnectionFactory.setHostName( ip);
+        }
+
+        //端口号
         JedisConnectionFactory.setPort(6379);
         //如果Redis设置有密码  
         JedisConnectionFactory.setPassword("123456");
