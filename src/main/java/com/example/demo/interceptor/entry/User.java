@@ -6,4 +6,5 @@ package com.example.demo.interceptor.entry;
  */
 
 public class User {
+    // 测试git2
 }
